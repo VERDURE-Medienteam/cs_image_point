@@ -2,7 +2,7 @@
 
 use Clickstorm\CsImagePoint\Elements\ImagePointElement;
 
-defined('TYPO3_MODE') || die();
+defined('TYPO3') || die();
 
 (function () {
     $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1650359230] = [
