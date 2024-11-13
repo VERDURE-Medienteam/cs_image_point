@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Clickstorm\CsImagePoint\Elements;
 
+use Override;
+use TYPO3\CMS\Core\Type\ContextualFeedbackSeverity;
 use TYPO3\CMS\Backend\Form\Element\AbstractFormElement;
 use TYPO3\CMS\Backend\Form\NodeFactory;
 use TYPO3\CMS\Backend\Routing\Exception\RouteNotFoundException;
@@ -23,6 +25,17 @@ use TYPO3\CMS\Fluid\View\StandaloneView;
  */
 class ImagePointElement extends AbstractFormElement
 {
+    /**
+     * Summary of templateView
+     * @var StandaloneView
+     */
+    protected StandaloneView $templateView;
+
+    /**
+     * Summary of uriBuilder
+     * @var UriBuilder
+     */
+    protected UriBuilder $uriBuilder;
 
     /**
      * Default field information enabled for this element.
@@ -55,6 +68,7 @@ class ImagePointElement extends AbstractFormElement
         $this->uriBuilder = GeneralUtility::makeInstance(UriBuilder::class);
     }
 
+    #[Override]
     public function render(): array
     {
         $parameterArray = $this->data['parameterArray'];
@@ -71,7 +85,7 @@ class ImagePointElement extends AbstractFormElement
             $this->getLanguageService()->sL(
                 'LLL:EXT:cs_image_point/Resources/Private/Language/locallang.xlf:error.wrongNumberOfImages.header'
             ),
-            FlashMessage::ERROR,
+            ContextualFeedbackSeverity::ERROR,
             true
         );
 
@@ -82,13 +96,7 @@ class ImagePointElement extends AbstractFormElement
             $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('sys_file_reference');
             $result = $queryBuilder
                 ->select('uid')
-                ->from('sys_file_reference')
-                ->where(
-                    $queryBuilder->expr()->eq('uid_foreign', $queryBuilder->createNamedParameter($uidForeign)),
-                    $queryBuilder->expr()->eq('fieldname', $queryBuilder->createNamedParameter($imageFieldName)),
-                    $queryBuilder->expr()->eq('tablenames', $queryBuilder->createNamedParameter($tablename))
-                )
-                ->execute();
+                ->from('sys_file_reference')->where($queryBuilder->expr()->eq('uid_foreign', $queryBuilder->createNamedParameter($uidForeign)), $queryBuilder->expr()->eq('fieldname', $queryBuilder->createNamedParameter($imageFieldName)), $queryBuilder->expr()->eq('tablenames', $queryBuilder->createNamedParameter($tablename)))->executeQuery();
             $result = $result->fetchAllAssociative();
             $sysFileReferenceUid = $result[0]['uid'] ?? 0;
 
@@ -115,8 +123,8 @@ class ImagePointElement extends AbstractFormElement
 
         $attributes = [
             'id' => $fieldId,
-            'name' => htmlspecialchars($parameterArray['itemFormElName']),
-            'data-formengine-input-name' => htmlspecialchars($parameterArray['itemFormElName']),
+            'name' => htmlspecialchars((string) $parameterArray['itemFormElName']),
+            'data-formengine-input-name' => htmlspecialchars((string) $parameterArray['itemFormElName']),
         ];
 
         $attributes['placeholder'] = 'Coordinates';
@@ -136,7 +144,7 @@ class ImagePointElement extends AbstractFormElement
             'uri' => $this->getWizardUri($sysFileReferenceUid),
             'id' => $fieldId,
             'fieldInformationHtml' => $fieldInformationHtml,
-            'itemValue' => htmlspecialchars($itemValue, ENT_QUOTES),
+            'itemValue' => htmlspecialchars((string) $itemValue, ENT_QUOTES),
             'attributesString' => GeneralUtility::implodeAttributes($attributes, true),
             'attributes' => $attributes,
             'iconHtml' => $this->iconFactory->getIcon('actions-thumbtack', Icon::SIZE_SMALL)->render(),
